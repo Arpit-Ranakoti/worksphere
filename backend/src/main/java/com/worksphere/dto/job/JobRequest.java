@@ -1,0 +1,1 @@
+package com.worksphere.dto.job; import java.time.*; import java.util.List; public record JobRequest(String title,String category,String description,List<String> requiredSkills,String location,LocalDate jobDate,LocalTime startTime,LocalTime endTime,Double pay,Integer workersRequired,Boolean depositRequired,Double depositAmount) {}

@@ -1,0 +1,1 @@
+package com.worksphere.service; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.*; class CommitmentServiceTest { @Test void contextSmoke(){assertNotNull(CommitmentService.class);} }

@@ -1,0 +1,208 @@
+/* ============================
+   WorkSphere - Global Styles
+   ============================ */
+
+:root {
+  --ws-navy: #0f1b3c;
+  --ws-navy-dark: #0a1229;
+  --ws-accent: #5b5fef;
+  --ws-accent-light: #eef0ff;
+  --ws-gray-bg: #f5f6fa;
+  --ws-text-muted: #6c7280;
+  --ws-success: #22c55e;
+  --ws-warning: #f59e0b;
+  --ws-danger: #ef4444;
+  --ws-radius: 12px;
+}
+
+body {
+  background-color: var(--ws-gray-bg);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: #1f2430;
+}
+
+a { text-decoration: none; }
+
+/* Navbar */
+.navbar-worksphere {
+  background-color: var(--ws-navy);
+}
+.navbar-worksphere .navbar-brand {
+  font-weight: 700;
+  color: #fff !important;
+  letter-spacing: 0.5px;
+}
+.navbar-worksphere .nav-link {
+  color: rgba(255,255,255,0.85) !important;
+}
+.navbar-worksphere .nav-link:hover,
+.navbar-worksphere .nav-link.active {
+  color: #fff !important;
+}
+
+/* Hero */
+.hero-section {
+  background: linear-gradient(135deg, var(--ws-navy) 0%, var(--ws-navy-dark) 100%);
+  color: #fff;
+  padding: 90px 0 70px;
+}
+.hero-section h1 {
+  font-weight: 800;
+  font-size: 2.8rem;
+}
+.hero-section p.lead {
+  color: rgba(255,255,255,0.8);
+}
+.btn-accent {
+  background-color: var(--ws-accent);
+  color: #fff;
+  border: none;
+}
+.btn-accent:hover {
+  background-color: #4548c9;
+  color: #fff;
+}
+.btn-outline-accent {
+  border: 1px solid #fff;
+  color: #fff;
+  background: transparent;
+}
+.btn-outline-accent:hover {
+  background: #fff;
+  color: var(--ws-navy);
+}
+
+/* Cards */
+.card-ws {
+  border: none;
+  border-radius: var(--ws-radius);
+  box-shadow: 0 2px 10px rgba(15,27,60,0.06);
+  background: #fff;
+}
+.card-ws:hover {
+  box-shadow: 0 6px 18px rgba(15,27,60,0.12);
+  transition: box-shadow 0.2s ease;
+}
+
+/* Job Card */
+.job-card .job-title {
+  font-weight: 700;
+  color: var(--ws-navy);
+}
+.job-card .job-meta {
+  font-size: 0.9rem;
+  color: var(--ws-text-muted);
+}
+.job-card .badge-skill {
+  background-color: var(--ws-accent-light);
+  color: var(--ws-accent);
+  font-weight: 500;
+  margin-right: 4px;
+}
+.match-badge {
+  background-color: var(--ws-success);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+}
+.match-badge.low { background-color: var(--ws-warning); }
+.match-badge.verylow { background-color: var(--ws-text-muted); }
+
+/* Section titles */
+.section-title {
+  font-weight: 700;
+  color: var(--ws-navy);
+  margin-bottom: 1.5rem;
+}
+
+/* Sidebar (admin) */
+.sidebar-ws {
+  background-color: var(--ws-navy);
+  min-height: 100vh;
+  padding-top: 20px;
+}
+.sidebar-ws a {
+  display: block;
+  padding: 12px 20px;
+  color: rgba(255,255,255,0.85);
+  border-left: 3px solid transparent;
+}
+.sidebar-ws a:hover,
+.sidebar-ws a.active {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-left: 3px solid var(--ws-accent);
+}
+
+/* Stat card */
+.stat-card {
+  border-radius: var(--ws-radius);
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(15,27,60,0.06);
+}
+.stat-card .stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--ws-navy);
+}
+.stat-card .stat-label {
+  color: var(--ws-text-muted);
+  font-size: 0.85rem;
+}
+
+/* Status badges */
+.badge-status-OPEN { background-color: var(--ws-success); }
+.badge-status-FULL { background-color: var(--ws-warning); }
+.badge-status-IN_PROGRESS { background-color: #3b82f6; }
+.badge-status-COMPLETED { background-color: #10b981; }
+.badge-status-CANCELLED { background-color: var(--ws-danger); }
+.badge-status-EXPIRED { background-color: #9ca3af; }
+.badge-status-PENDING { background-color: var(--ws-warning); }
+.badge-status-SELECTED { background-color: var(--ws-success); }
+.badge-status-REJECTED { background-color: var(--ws-danger); }
+.badge-status-WITHDRAWN { background-color: #9ca3af; }
+.badge-status-CONFIRMED { background-color: var(--ws-success); }
+.badge-status-DECLINED { background-color: var(--ws-danger); }
+.badge-status-NO_SHOW { background-color: var(--ws-danger); }
+.badge-status-OPEN_DISPUTE { background-color: var(--ws-warning); }
+.badge-status-UNDER_REVIEW { background-color: #3b82f6; }
+.badge-status-RESOLVED { background-color: var(--ws-success); }
+
+/* Notification item */
+.notification-item {
+  border-left: 4px solid var(--ws-accent);
+  background: #fff;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.notification-item.unread {
+  background: var(--ws-accent-light);
+}
+.notification-item .notif-time {
+  font-size: 0.75rem;
+  color: var(--ws-text-muted);
+}
+
+/* Rating stars */
+.star-rating {
+  color: #f59e0b;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Utility */
+.text-navy { color: var(--ws-navy); }
+.bg-navy { background-color: var(--ws-navy); }
+.rounded-ws { border-radius: var(--ws-radius); }
+.min-vh-80 { min-height: 80vh; }
+
+footer.footer-ws {
+  background-color: var(--ws-navy);
+  color: rgba(255,255,255,0.7);
+  padding: 30px 0;
+  margin-top: 60px;
+}

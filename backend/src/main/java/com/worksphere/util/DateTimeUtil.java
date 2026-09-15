@@ -1,0 +1,1 @@
+package com.worksphere.util; import java.time.*; public final class DateTimeUtil { private DateTimeUtil(){} public static long minutesUntil(LocalDate d,LocalTime t){return Duration.between(LocalDateTime.now(),LocalDateTime.of(d,t)).toMinutes();} }

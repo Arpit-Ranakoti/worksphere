@@ -1,0 +1,1 @@
+package com.worksphere.service; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.*; class MatchingServiceTest { @Test void contextSmoke(){assertNotNull(MatchingService.class);} }

@@ -1,0 +1,7 @@
+com/worksphere/service/AuthServiceTest.class
+com/worksphere/service/CommitmentServiceTest.class
+com/worksphere/service/ApplicationServiceTest.class
+com/worksphere/service/RatingServiceTest.class
+com/worksphere/service/JobServiceTest.class
+com/worksphere/WorkSphereApplicationTests.class
+com/worksphere/service/MatchingServiceTest.class

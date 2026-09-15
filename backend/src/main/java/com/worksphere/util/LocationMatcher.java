@@ -1,0 +1,1 @@
+package com.worksphere.util; import org.springframework.stereotype.Component; @Component public class LocationMatcher { public double score(String worker,String job){if(worker==null||job==null||worker.isBlank()||job.isBlank())return 0; if(worker.equalsIgnoreCase(job))return 100; String a=worker.toLowerCase(),b=job.toLowerCase(); return (a.contains(b)||b.contains(a))?70:0;} }

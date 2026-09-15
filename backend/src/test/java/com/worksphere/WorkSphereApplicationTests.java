@@ -1,0 +1,1 @@
+package com.worksphere; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.*; class WorkSphereApplicationTests { @Test void applicationClassExists(){assertNotNull(WorkSphereApplication.class);} }
