@@ -1,2 +1,5 @@
 package com.worksphere.entity;
-public enum Role { JOB_SEEKER, EMPLOYER, ADMIN }
+
+public enum Role {
+    JOB_SEEKER, EMPLOYER, ADMIN
+}

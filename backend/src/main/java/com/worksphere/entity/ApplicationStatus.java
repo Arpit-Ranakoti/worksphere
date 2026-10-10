@@ -1,2 +1,5 @@
 package com.worksphere.entity;
-public enum ApplicationStatus { PENDING, SELECTED, REJECTED, WITHDRAWN }
+
+public enum ApplicationStatus {
+    PENDING, SELECTED, REJECTED, WITHDRAWN
+}

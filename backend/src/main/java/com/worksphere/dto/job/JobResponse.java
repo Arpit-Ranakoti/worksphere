@@ -1,1 +1,7 @@
-package com.worksphere.dto.job; import java.time.*; import java.util.List; public record JobResponse(Long id,Long employerId,String employerName,String title,String category,String description,List<String> requiredSkills,String location,LocalDate jobDate,LocalTime startTime,LocalTime endTime,Double pay,Integer workersRequired,Integer workersSelected,Boolean depositRequired,Double depositAmount,String status,Double matchScore,Boolean alreadyApplied,Double employerRating,Integer applicationCount) {}
+package com.worksphere.dto.job;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
+public record JobResponse(Long id, Long employerId, String employerName, String title, String category, String description, List<String> requiredSkills, String location, LocalDate jobDate, LocalTime startTime, LocalTime endTime, Double pay, Integer workersRequired, Integer workersSelected, Boolean depositRequired, Double depositAmount, String status, Double matchScore, Boolean alreadyApplied, Double employerRating, Integer applicationCount) {}
