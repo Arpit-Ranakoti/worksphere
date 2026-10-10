@@ -1,3 +1,133 @@
 package com.worksphere.service;
-import com.worksphere.dto.job.*; import com.worksphere.entity.*; import com.worksphere.repository.*; import com.worksphere.exception.*; import org.springframework.security.core.Authentication; import org.springframework.stereotype.Service; import java.util.*; import java.time.*;
-@Service public class JobService {private final JobRepository jobs;private final JobSkillRepository jobSkills;private final SkillService skills;private final UserService users;private final ApplicationRepository apps;private final EmployerProfileRepository employers;private final MatchingService matching;public JobService(JobRepository j,JobSkillRepository js,SkillService s,UserService u,ApplicationRepository a,EmployerProfileRepository e,MatchingService m){jobs=j;jobSkills=js;skills=s;users=u;apps=a;employers=e;matching=m;} public List<JobResponse> search(JobSearchFilter f,Authentication a){User worker=a==null?null:users.current(a);return jobs.findAllByOrderByCreatedAtDesc().stream().filter(j->j.status==JobStatus.OPEN||j.status==JobStatus.FULL).filter(j->f.keyword()==null||f.keyword().isBlank()||j.title.toLowerCase().contains(f.keyword().toLowerCase())).filter(j->f.location()==null||f.location().isBlank()||j.location.toLowerCase().contains(f.location().toLowerCase())).filter(j->f.category()==null||f.category().isBlank()||j.category.equalsIgnoreCase(f.category())).filter(j->f.date()==null||f.date().isBlank()||j.jobDate.toString().equals(f.date())).filter(j->f.minPay()==null||j.pay>=f.minPay()).filter(j->f.maxPay()==null||j.pay<=f.maxPay()).map(j->to(j,worker)).sorted((x,y)->{if(Boolean.TRUE.equals(f.recommended())&&worker!=null)return Double.compare(Optional.ofNullable(y.matchScore()).orElse(0.0),Optional.ofNullable(x.matchScore()).orElse(0.0));return 0;}).toList();} public JobResponse get(Long id,Authentication a){Job j=jobs.findById(id).orElseThrow(()->new ResourceNotFoundException("Job not found"));return to(j,a==null?null:users.current(a));} public List<JobResponse> mine(Authentication a){User u=users.current(a);return jobs.findByEmployerIdOrderByCreatedAtDesc(u.id).stream().map(x->to(x,u)).toList();} public JobResponse create(Authentication a,JobRequest r){User u=users.current(a);if(u.role!=Role.EMPLOYER)throw new UnauthorizedActionException("Only employers can post jobs");Job j=new Job();j.employer=u;apply(j,r);j=jobs.save(j);saveSkills(j,r.requiredSkills());return to(j,u);} public JobResponse update(Long id,Authentication a,JobRequest r){Job j=owned(id,a);apply(j,r);jobSkills.deleteByJobId(j.id);saveSkills(j,r.requiredSkills());return to(j,users.current(a));} public void delete(Long id,Authentication a){jobs.delete(owned(id,a));} private Job owned(Long id,Authentication a){Job j=jobs.findById(id).orElseThrow(()->new ResourceNotFoundException("Job not found"));if(!j.employer.id.equals(users.current(a).id))throw new UnauthorizedActionException("Not your job");return j;} private void apply(Job j,JobRequest r){j.title=r.title();j.category=r.category();j.description=r.description();j.location=r.location();j.jobDate=r.jobDate();j.startTime=r.startTime();j.endTime=r.endTime();j.pay=r.pay();j.workersRequired=r.workersRequired()==null?1:r.workersRequired();j.depositRequired=Boolean.TRUE.equals(r.depositRequired());j.depositAmount=r.depositAmount()==null?0:r.depositAmount();} private void saveSkills(Job j,List<String> names){if(names!=null)for(String n:names){JobSkill x=new JobSkill();x.job=j;x.skill=skills.getOrCreate(n);jobSkills.save(x);}} private JobResponse to(Job j,User viewer){Double score=null;Boolean applied=false;if(viewer!=null&&viewer.role==Role.JOB_SEEKER){score=matching.score(j,viewer);applied=apps.findByJobIdAndWorkerId(j.id,viewer.id).isPresent();}double rating=employers.findByUserId(j.employer.id).map(p->p.rating).orElse(0.0);return new JobResponse(j.id,j.employer.id,j.employer.fullName,j.title,j.category,j.description,jobSkills.findByJobId(j.id).stream().map(x->x.skill.name).toList(),j.location,j.jobDate,j.startTime,j.endTime,j.pay,j.workersRequired,j.workersSelected,j.depositRequired,j.depositAmount,j.status.name(),score,applied,rating,(int)apps.countByJobId(j.id));} }
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+
+import com.worksphere.dto.job.JobRequest;
+import com.worksphere.dto.job.JobResponse;
+import com.worksphere.dto.job.JobSearchFilter;
+import com.worksphere.entity.Job;
+import com.worksphere.entity.JobSkill;
+import com.worksphere.entity.JobStatus;
+import com.worksphere.entity.Role;
+import com.worksphere.entity.User;
+import com.worksphere.exception.ResourceNotFoundException;
+import com.worksphere.exception.UnauthorizedActionException;
+import com.worksphere.repository.ApplicationRepository;
+import com.worksphere.repository.EmployerProfileRepository;
+import com.worksphere.repository.JobRepository;
+import com.worksphere.repository.JobSkillRepository;
+
+@Service
+public class JobService {
+
+    private final JobRepository jobs;
+    private final JobSkillRepository jobSkills;
+    private final SkillService skills;
+    private final UserService users;
+    private final ApplicationRepository apps;
+    private final EmployerProfileRepository employers;
+    private final MatchingService matching;
+
+    public JobService(JobRepository j, JobSkillRepository js, SkillService s, UserService u, ApplicationRepository a, EmployerProfileRepository e, MatchingService m) {
+        jobs = j;
+        jobSkills = js;
+        skills = s;
+        users = u;
+        apps = a;
+        employers = e;
+        matching = m;
+    }
+
+    public List<JobResponse> search(JobSearchFilter f, Authentication a) {
+        User worker = a == null ? null : users.current(a);
+        return jobs.findAllByOrderByCreatedAtDesc().stream().filter(j -> j.status == JobStatus.OPEN || j.status == JobStatus.FULL).filter(j -> f.keyword() == null || f.keyword().isBlank() || j.title.toLowerCase().contains(f.keyword().toLowerCase())).filter(j -> f.location() == null || f.location().isBlank() || j.location.toLowerCase().contains(f.location().toLowerCase())).filter(j -> f.category() == null || f.category().isBlank() || j.category.equalsIgnoreCase(f.category())).filter(j -> f.date() == null || f.date().isBlank() || j.jobDate.toString().equals(f.date())).filter(j -> f.minPay() == null || j.pay >= f.minPay()).filter(j -> f.maxPay() == null || j.pay <= f.maxPay()).map(j -> to(j, worker)).sorted((x, y) -> {
+            if (Boolean.TRUE.equals(f.recommended()) && worker != null) {
+                return Double.compare(Optional.ofNullable(y.matchScore()).orElse(0.0), Optional.ofNullable(x.matchScore()).orElse(0.0));
+            
+            }return 0;
+        }).toList();
+    }
+
+    public JobResponse get(Long id, Authentication a) {
+        Job j = jobs.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+        return to(j, a == null ? null : users.current(a));
+    }
+
+    public List<JobResponse> mine(Authentication a) {
+        User u = users.current(a);
+        return jobs.findByEmployerIdOrderByCreatedAtDesc(u.id).stream().map(x -> to(x, u)).toList();
+    }
+
+    public JobResponse create(Authentication a, JobRequest r) {
+        User u = users.current(a);
+        if (u.role != Role.EMPLOYER) {
+            throw new UnauthorizedActionException("Only employers can post jobs");
+        
+        }Job j = new Job();
+        j.employer = u;
+        apply(j, r);
+        j = jobs.save(j);
+        saveSkills(j, r.requiredSkills());
+        return to(j, u);
+    }
+
+    public JobResponse update(Long id, Authentication a, JobRequest r) {
+        Job j = owned(id, a);
+        apply(j, r);
+        jobSkills.deleteByJobId(j.id);
+        saveSkills(j, r.requiredSkills());
+        return to(j, users.current(a));
+    }
+
+    public void delete(Long id, Authentication a) {
+        jobs.delete(owned(id, a));
+    }
+
+    private Job owned(Long id, Authentication a) {
+        Job j = jobs.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+        if (!j.employer.id.equals(users.current(a).id)) {
+            throw new UnauthorizedActionException("Not your job");
+        
+        }return j;
+    }
+
+    private void apply(Job j, JobRequest r) {
+        j.title = r.title();
+        j.category = r.category();
+        j.description = r.description();
+        j.location = r.location();
+        j.jobDate = r.jobDate();
+        j.startTime = r.startTime();
+        j.endTime = r.endTime();
+        j.pay = r.pay();
+        j.workersRequired = r.workersRequired() == null ? 1 : r.workersRequired();
+        j.depositRequired = Boolean.TRUE.equals(r.depositRequired());
+        j.depositAmount = r.depositAmount() == null ? 0 : r.depositAmount();
+    }
+
+    private void saveSkills(Job j, List<String> names) {
+        if (names != null) {
+            for (String n : names) {
+                JobSkill x = new JobSkill();
+                x.job = j;
+                x.skill = skills.getOrCreate(n);
+                jobSkills.save(x);
+            }
+    
+        }}
+
+    private JobResponse to(Job j, User viewer) {
+        Double score = null;
+        Boolean applied = false;
+        if (viewer != null && viewer.role == Role.JOB_SEEKER) {
+            score = matching.score(j, viewer);
+            applied = apps.findByJobIdAndWorkerId(j.id, viewer.id).isPresent();
+        }
+        double rating = employers.findByUserId(j.employer.id).map(p -> p.rating).orElse(0.0);
+        return new JobResponse(j.id, j.employer.id, j.employer.fullName, j.title, j.category, j.description, jobSkills.findByJobId(j.id).stream().map(x -> x.skill.name).toList(), j.location, j.jobDate, j.startTime, j.endTime, j.pay, j.workersRequired, j.workersSelected, j.depositRequired, j.depositAmount, j.status.name(), score, applied, rating, (int) apps.countByJobId(j.id));
+    }
+}

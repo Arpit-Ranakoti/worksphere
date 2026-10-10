@@ -1,1 +1,50 @@
-package com.worksphere.controller; import com.worksphere.service.CommitmentService; import org.springframework.security.core.Authentication; import org.springframework.web.bind.annotation.*; import java.util.*; @RestController @RequestMapping("/api/commitments") public class CommitmentController {private final CommitmentService s;public CommitmentController(CommitmentService x){s=x;} @GetMapping("/my") public Object mine(Authentication a,@RequestParam(required=false) Boolean upcoming){return Boolean.TRUE.equals(upcoming)?s.upcoming(a):s.mine(a);} @PostMapping("/{id}/confirm") public void confirm(@PathVariable Long id,Authentication a){s.confirm(id,a);} @PostMapping("/{id}/decline") public void decline(@PathVariable Long id,Authentication a){s.decline(id,a);} @PostMapping("/{id}/cancel") public void cancel(@PathVariable Long id,@RequestBody Map<String,String> b,Authentication a){s.cancel(id,a,b.getOrDefault("reason","Cancelled"));} @PostMapping("/{id}/complete") public void complete(@PathVariable Long id,Authentication a){s.complete(id,a);} }
+package com.worksphere.controller;
+
+import java.util.Map;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.worksphere.service.CommitmentService;
+
+@RestController
+@RequestMapping("/api/commitments")
+public class CommitmentController {
+
+    private final CommitmentService s;
+
+    public CommitmentController(CommitmentService x) {
+        s = x;
+    }
+
+    @GetMapping("/my")
+    public Object mine(Authentication a, @RequestParam(required = false) Boolean upcoming) {
+        return Boolean.TRUE.equals(upcoming) ? s.upcoming(a) : s.mine(a);
+    }
+
+    @PostMapping("/{id}/confirm")
+    public void confirm(@PathVariable Long id, Authentication a) {
+        s.confirm(id, a);
+    }
+
+    @PostMapping("/{id}/decline")
+    public void decline(@PathVariable Long id, Authentication a) {
+        s.decline(id, a);
+    }
+
+    @PostMapping("/{id}/cancel")
+    public void cancel(@PathVariable Long id, @RequestBody Map<String, String> b, Authentication a) {
+        s.cancel(id, a, b.getOrDefault("reason", "Cancelled"));
+    }
+
+    @PostMapping("/{id}/complete")
+    public void complete(@PathVariable Long id, Authentication a) {
+        s.complete(id, a);
+    }
+}

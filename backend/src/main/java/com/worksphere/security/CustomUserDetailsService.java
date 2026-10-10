@@ -1,1 +1,22 @@
-package com.worksphere.security; import com.worksphere.repository.UserRepository; import org.springframework.security.core.userdetails.*; import org.springframework.stereotype.Service; @Service public class CustomUserDetailsService implements UserDetailsService { private final UserRepository repo; public CustomUserDetailsService(UserRepository r){repo=r;} public UserDetails loadUserByUsername(String email)throws UsernameNotFoundException{return new CustomUserDetails(repo.findByEmail(email).orElseThrow(()->new UsernameNotFoundException(email)));} }
+package com.worksphere.security;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import com.worksphere.repository.UserRepository;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserRepository repo;
+
+    public CustomUserDetailsService(UserRepository r) {
+        repo = r;
+    }
+
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return new CustomUserDetails(repo.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email)));
+    }
+}

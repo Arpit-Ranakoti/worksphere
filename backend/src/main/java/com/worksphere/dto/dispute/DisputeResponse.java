@@ -1,1 +1,5 @@
-package com.worksphere.dto.dispute; import java.time.LocalDateTime; public record DisputeResponse(Long id,Long commitmentId,String raisedBy,String reason,String description,String status,String resolutionNote,LocalDateTime createdAt,LocalDateTime resolvedAt) {}
+package com.worksphere.dto.dispute;
+
+import java.time.LocalDateTime;
+
+public record DisputeResponse(Long id, Long commitmentId, String raisedBy, String reason, String description, String status, String resolutionNote, LocalDateTime createdAt, LocalDateTime resolvedAt) {}

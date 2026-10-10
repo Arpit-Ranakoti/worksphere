@@ -1,1 +1,26 @@
-package com.worksphere.service; import com.worksphere.entity.Skill; import com.worksphere.repository.SkillRepository; import org.springframework.stereotype.Service; import java.util.*; @Service public class SkillService {private final SkillRepository repo; public SkillService(SkillRepository r){repo=r;} public Skill getOrCreate(String n){return repo.findByNameIgnoreCase(n.trim()).orElseGet(()->repo.save(new Skill(n.trim())));} public List<Skill> all(){return repo.findAllByOrderByNameAsc();}}
+package com.worksphere.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.worksphere.entity.Skill;
+import com.worksphere.repository.SkillRepository;
+
+@Service
+public class SkillService {
+
+    private final SkillRepository repo;
+
+    public SkillService(SkillRepository r) {
+        repo = r;
+    }
+
+    public Skill getOrCreate(String n) {
+        return repo.findByNameIgnoreCase(n.trim()).orElseGet(() -> repo.save(new Skill(n.trim())));
+    }
+
+    public List<Skill> all() {
+        return repo.findAllByOrderByNameAsc();
+    }
+}
