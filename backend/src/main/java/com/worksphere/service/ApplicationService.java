@@ -50,26 +50,60 @@ public class ApplicationService {
         commitments = c;
     }
 
-    public ApplicationResponse apply(Authentication a, ApplicationRequest r) {
-        User w = users.current(a);
-        if (w.role != Role.JOB_SEEKER) {
-            throw new UnauthorizedActionException("Only job seekers can apply");
-        
-        }Job j = jobs.findById(r.jobId()).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
-        if (j.status != JobStatus.OPEN) {
-            throw new BadRequestException("Applications are closed");
-        
-        }if (apps.findByJobIdAndWorkerId(j.id, w.id).isPresent()) {
-            throw new DuplicateApplicationException("Already applied");
-        
-        }Application x = new Application();
-        x.job = j;
-        x.worker = w;
-        x.coverMessage = r.coverMessage();
-        x = apps.save(x);
-        notifications.send(j.employer, NotificationType.APPLICATION, w.fullName + " applied for " + j.title);
-        return to(x);
+    
+public ApplicationResponse apply(Authentication a, ApplicationRequest r) {
+    User w = users.current(a);
+
+    if (w.role != Role.JOB_SEEKER) {
+        throw new UnauthorizedActionException("Only job seekers can apply");
     }
+
+    Job j = jobs.findById(r.jobId())
+        .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+
+    if (j.status != JobStatus.OPEN) {
+        throw new BadRequestException("Applications are closed");
+    }
+
+    var existing = apps.findByJobIdAndWorkerId(j.id, w.id);
+
+    if (existing.isPresent()) {
+        Application previous = existing.get();
+
+        if (previous.status != ApplicationStatus.WITHDRAWN) {
+            throw new DuplicateApplicationException("Already applied");
+        }
+
+        previous.status = ApplicationStatus.PENDING;
+        previous.coverMessage = r.coverMessage();
+
+        Application reactivated = apps.save(previous);
+
+        notifications.send(
+            j.employer,
+            NotificationType.APPLICATION,
+            w.fullName + " applied for " + j.title
+        );
+
+        return to(reactivated);
+    }
+
+    Application x = new Application();
+    x.job = j;
+    x.worker = w;
+    x.coverMessage = r.coverMessage();
+
+    x = apps.save(x);
+
+    notifications.send(
+        j.employer,
+        NotificationType.APPLICATION,
+        w.fullName + " applied for " + j.title
+    );
+
+    return to(x);
+}
+
 
     public List<ApplicationResponse> mine(Authentication a) {
         return apps.findByWorkerIdOrderByAppliedAtDesc(users.current(a).id).stream().map(this::to).toList();
