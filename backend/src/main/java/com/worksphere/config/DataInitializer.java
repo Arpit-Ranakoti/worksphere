@@ -63,7 +63,7 @@ public class DataInitializer {
             }
             String[] names = {"Events", "Delivery", "Data Entry", "Customer Service", "Cleaning", "Marketing"};
             for (String n : names) {
-                skills.save(new Skill(n));
+                if (skills.findByNameIgnoreCase(n).isEmpty()) { skills.save(new Skill(n)); }
             
             }Job j = new Job();
             j.employer = employer;
