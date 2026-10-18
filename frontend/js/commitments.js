@@ -30,6 +30,14 @@ async function loadCommitments() {
   }
 }
 
+// Active "Rate" button, or a light, disabled "Rated" button once the user has already rated
+function ratingButton(c, label) {
+  if (c.ratedByMe) {
+    return `<button class="btn btn-sm btn-light border text-muted" disabled title="You have already rated this job"><i class="bi bi-check2-circle"></i> Rated</button>`;
+  }
+  return `<button class="btn btn-sm btn-accent" onclick="openRatingModal(${c.id}, ${c.otherPartyUserId})">${label}</button>`;
+}
+
 function renderCommitmentCard(c, role) {
   let actions = "";
 
@@ -40,16 +48,16 @@ function renderCommitmentCard(c, role) {
         <button class="btn btn-sm btn-outline-danger" onclick="declineCommitment(${c.id})">Decline</button>`;
     } else if (c.status === "CONFIRMED") {
       actions = `<button class="btn btn-sm btn-outline-danger" onclick="cancelCommitment(${c.id})">Cancel</button>`;
-    } else if (c.status === "COMPLETED" && !c.ratedByMe) {
-      actions = `<button class="btn btn-sm btn-accent" onclick="openRatingModal(${c.id}, ${c.otherPartyUserId})">Rate Employer</button>`;
+    } else if (c.status === "COMPLETED") {
+      actions = ratingButton(c, "Rate Employer");
     }
   } else if (role === "EMPLOYER") {
     if (c.status === "CONFIRMED") {
       actions = `
         <button class="btn btn-sm btn-success" onclick="completeCommitment(${c.id})">Mark Completed</button>
         <button class="btn btn-sm btn-outline-danger" onclick="reportNoShow(${c.id})">Report No-Show</button>`;
-    } else if (c.status === "COMPLETED" && !c.ratedByMe) {
-      actions = `<button class="btn btn-sm btn-accent" onclick="openRatingModal(${c.id}, ${c.otherPartyUserId})">Rate Worker</button>`;
+    } else if (c.status === "COMPLETED") {
+      actions = ratingButton(c, "Rate Worker");
     }
   }
 

@@ -17,6 +17,7 @@ import com.worksphere.entity.User;
 import com.worksphere.exception.BadRequestException;
 import com.worksphere.exception.UnauthorizedActionException;
 import com.worksphere.repository.CommitmentRepository;
+import com.worksphere.repository.RatingRepository;
 
 @Service
 public class CommitmentService {
@@ -24,11 +25,13 @@ public class CommitmentService {
     private final CommitmentRepository repo;
     private final UserService users;
     private final NotificationService notifications;
+    private final RatingRepository ratings;   // NEW
 
-    public CommitmentService(CommitmentRepository r, UserService u, NotificationService n) {
+    public CommitmentService(CommitmentRepository r, UserService u, NotificationService n, RatingRepository ratings) {   // NEW param
         repo = r;
         users = u;
         notifications = n;
+        this.ratings = ratings;   // NEW
     }
 
     public List<CommitmentResponse> mine(Authentication a) {
@@ -44,15 +47,11 @@ public class CommitmentService {
 
     public void confirm(Long id, Authentication a) {
         Commitment c = get(id, a);
-        if (c.status != CommitmentStatus.PENDING_CONFIRMATION) {
-            throw new BadRequestException("Cannot confirm this commitment");
-        
-        }c.status = CommitmentStatus.CONFIRMED;
+        if (c.status != CommitmentStatus.PENDING_CONFIRMATION) throw new BadRequestException("Cannot confirm this commitment");
+        c.status = CommitmentStatus.CONFIRMED;
         c.confirmedAt = java.time.LocalDateTime.now();
-        if (c.depositStatus == DepositStatus.PENDING) {
-            c.depositStatus = DepositStatus.HELD;
-        
-        }repo.save(c);
+        if (c.depositStatus == DepositStatus.PENDING) c.depositStatus = DepositStatus.HELD;
+        repo.save(c);
         notifications.send(c.employer, NotificationType.COMMITMENT, c.worker.fullName + " confirmed the commitment for " + c.job.title);
     }
 
@@ -75,15 +74,11 @@ public class CommitmentService {
 
     public void complete(Long id, Authentication a) {
         Commitment c = get(id, a);
-        if (c.status != CommitmentStatus.CONFIRMED) {
-            throw new BadRequestException("Only confirmed commitments can complete");
-        
-        }c.status = CommitmentStatus.COMPLETED;
+        if (c.status != CommitmentStatus.CONFIRMED) throw new BadRequestException("Only confirmed commitments can complete");
+        c.status = CommitmentStatus.COMPLETED;
         c.completedAt = java.time.LocalDateTime.now();
-        if (c.depositStatus == DepositStatus.HELD) {
-            c.depositStatus = DepositStatus.REFUNDED;
-        
-        }c.job.status = JobStatus.COMPLETED;
+        if (c.depositStatus == DepositStatus.HELD) c.depositStatus = DepositStatus.REFUNDED;
+        c.job.status = JobStatus.COMPLETED;
         repo.save(c);
         notifications.send(c.worker, NotificationType.COMMITMENT, "Job completed: " + c.job.title);
     }
@@ -94,6 +89,12 @@ public class CommitmentService {
 
     private CommitmentResponse to(Commitment c, User me) {
         boolean worker = me.role == Role.JOB_SEEKER;
-        return new CommitmentResponse(c.id, c.job.id, c.job.title, c.job.location, c.job.jobDate, c.job.startTime == null ? null : c.job.startTime.toString(), c.job.endTime == null ? null : c.job.endTime.toString(), c.worker.fullName, c.employer.fullName, c.status.name(), c.depositStatus.name(), c.cancelReason, c.job.pay, worker ? c.employer.fullName : c.worker.fullName, worker ? c.employer.id : c.worker.id, false);
+        Long otherId = worker ? c.employer.id : c.worker.id;
+        boolean ratedByMe = ratings.findByCommitmentIdAndFromUserIdAndToUserId(c.id, me.id, otherId).isPresent();   // NEW
+        return new CommitmentResponse(c.id, c.job.id, c.job.title, c.job.location, c.job.jobDate,
+                c.job.startTime == null ? null : c.job.startTime.toString(),
+                c.job.endTime == null ? null : c.job.endTime.toString(),
+                c.worker.fullName, c.employer.fullName, c.status.name(), c.depositStatus.name(), c.cancelReason, c.job.pay,
+                worker ? c.employer.fullName : c.worker.fullName, otherId, ratedByMe);   // was: false
     }
 }
