@@ -1,2 +1,0 @@
--- WorkSphere schema is managed by Hibernate/JPA (spring.jpa.hibernate.ddl-auto=update).
--- This file is intentionally kept as the SQL entry point for deployments that prefer explicit migrations.

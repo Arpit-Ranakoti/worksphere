@@ -1,1 +1,0 @@
--- Demo data is inserted by DataInitializer.java so passwords can be BCrypt encoded safely.
