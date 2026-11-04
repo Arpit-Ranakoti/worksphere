@@ -39,5 +39,7 @@ public class Job {
     public Double depositAmount = 0.0;
     @Enumerated(EnumType.STRING)
     public JobStatus status = JobStatus.OPEN;
+    @Column(nullable = false)
+    public boolean deleted = false;
     public LocalDateTime createdAt = LocalDateTime.now();
 }

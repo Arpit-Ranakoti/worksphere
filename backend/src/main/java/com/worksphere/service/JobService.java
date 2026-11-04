@@ -44,7 +44,7 @@ public class JobService {
 
     public List<JobResponse> search(JobSearchFilter f, Authentication a) {
         User worker = a == null ? null : users.current(a);
-        return jobs.findAllByOrderByCreatedAtDesc().stream().filter(j -> j.status == JobStatus.OPEN || j.status == JobStatus.FULL).filter(j -> f.keyword() == null || f.keyword().isBlank() || j.title.toLowerCase().contains(f.keyword().toLowerCase())).filter(j -> f.location() == null || f.location().isBlank() || j.location.toLowerCase().contains(f.location().toLowerCase())).filter(j -> f.category() == null || f.category().isBlank() || j.category.equalsIgnoreCase(f.category())).filter(j -> f.date() == null || f.date().isBlank() || j.jobDate.toString().equals(f.date())).filter(j -> f.minPay() == null || j.pay >= f.minPay()).filter(j -> f.maxPay() == null || j.pay <= f.maxPay()).map(j -> to(j, worker)).sorted((x, y) -> {
+        return jobs.findAllByOrderByCreatedAtDesc().stream().filter(j -> !j.deleted && (j.status == JobStatus.OPEN || j.status == JobStatus.FULL)).filter(j -> f.keyword() == null || f.keyword().isBlank() || j.title.toLowerCase().contains(f.keyword().toLowerCase())).filter(j -> f.location() == null || f.location().isBlank() || j.location.toLowerCase().contains(f.location().toLowerCase())).filter(j -> f.category() == null || f.category().isBlank() || j.category.equalsIgnoreCase(f.category())).filter(j -> f.date() == null || f.date().isBlank() || j.jobDate.toString().equals(f.date())).filter(j -> f.minPay() == null || j.pay >= f.minPay()).filter(j -> f.maxPay() == null || j.pay <= f.maxPay()).map(j -> to(j, worker)).sorted((x, y) -> {
             if (Boolean.TRUE.equals(f.recommended()) && worker != null) {
                 return Double.compare(Optional.ofNullable(y.matchScore()).orElse(0.0), Optional.ofNullable(x.matchScore()).orElse(0.0));
             
@@ -54,7 +54,15 @@ public class JobService {
 
     public JobResponse get(Long id, Authentication a) {
         Job j = jobs.findById(id).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
-        return to(j, a == null ? null : users.current(a));
+        User viewer = a == null ? null : users.current(a);
+        boolean owner = viewer != null && viewer.role == Role.EMPLOYER && j.employer.id.equals(viewer.id);
+        if (j.deleted && !owner) {
+            throw new ResourceNotFoundException("Job not found");
+        }
+        if (j.status == JobStatus.COMPLETED && !owner) {
+            throw new ResourceNotFoundException("Job not found");
+        }
+        return to(j, viewer);
     }
 
     public List<JobResponse> mine(Authentication a) {
@@ -84,7 +92,10 @@ public class JobService {
     }
 
     public void delete(Long id, Authentication a) {
-        jobs.delete(owned(id, a));
+        Job job = owned(id, a);
+        job.deleted = true;
+        job.status = JobStatus.CANCELLED;
+        jobs.save(job);
     }
 
     private Job owned(Long id, Authentication a) {
