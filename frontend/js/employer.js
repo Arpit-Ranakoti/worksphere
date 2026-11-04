@@ -56,7 +56,23 @@ function renderMyJobs(jobs) {
         <div class="mt-auto d-flex gap-2">
           <a href="applications.html?jobId=${job.id}" class="btn btn-sm btn-accent flex-fill">Applicants</a>
           <a href="job-details.html?id=${job.id}" class="btn btn-sm btn-outline-secondary flex-fill">View</a>
+          ${job.status !== "COMPLETED" && job.status !== "CANCELLED" ? `<button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteEmployerJob(${job.id})" aria-label="Delete ${job.title}"><i class="bi bi-trash"></i></button>` : ""}
         </div>
       </div>
     </div>`).join("");
+}
+
+async function deleteEmployerJob(jobId) {
+  if (!confirm("Delete this job? It will be removed from the public Jobs page. Existing applications will remain available in their related sections.")) return;
+  try {
+    await WS.del(`/jobs/${jobId}`);
+    WS.showAlert("myJobsAlert", "Job deleted. It is no longer visible to workers; its application history is retained.", "success");
+    const jobs = await WS.get("/jobs/my");
+    document.getElementById("statPosted").innerText = jobs.length;
+    document.getElementById("statOpen").innerText = jobs.filter(j => j.status === "OPEN").length;
+    document.getElementById("statCompleted").innerText = jobs.filter(j => j.status === "COMPLETED").length;
+    renderMyJobs(jobs);
+  } catch (e) {
+    WS.showAlert("myJobsAlert", "Could not delete job: " + e.message);
+  }
 }

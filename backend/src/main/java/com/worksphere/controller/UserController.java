@@ -4,6 +4,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import com.worksphere.dto.profile.UserProfileRequest;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.worksphere.service.UserService;
@@ -21,6 +24,11 @@ public class UserController {
     @GetMapping("/me")
     public Object me(Authentication a) {
         return s.current(a);
+    }
+
+    @PutMapping("/me")
+    public Object updateMe(Authentication a, @RequestBody UserProfileRequest request) {
+        return s.updateCurrent(a, request);
     }
 
     @GetMapping("/{id}/ratings")

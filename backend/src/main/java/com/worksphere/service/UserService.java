@@ -22,6 +22,13 @@ public class UserService {
         return users.findByEmail(a.getName()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
+    public User updateCurrent(Authentication a, com.worksphere.dto.profile.UserProfileRequest r) {
+        User user = current(a);
+        if (r.fullName() != null && !r.fullName().isBlank()) user.fullName = r.fullName().trim();
+        user.phone = r.phone();
+        return users.save(user);
+    }
+
     public User byId(Long id) {
         return users.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
