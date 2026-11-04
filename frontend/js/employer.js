@@ -18,7 +18,7 @@
   try {
     const jobs = await WS.get("/jobs/my");
     document.getElementById("statPosted").innerText = jobs.length;
-    document.getElementById("statOpen").innerText = jobs.filter(j => j.status === "OPEN").length;
+    document.getElementById("statOpen").innerText = jobs.filter(isActiveJob).filter(j => j.status === "OPEN").length;
     document.getElementById("statCompleted").innerText = jobs.filter(j => j.status === "COMPLETED").length;
     renderMyJobs(jobs);
 
@@ -35,10 +35,20 @@
   }
 })();
 
-function renderMyJobs(jobs) {
+// A job is active if it is still OPEN/FULL and its date + end time have not passed.
+function isActiveJob(job) {
+  if (job.status !== "OPEN" && job.status !== "FULL") return false;
+  if (!job.jobDate) return true;
+  const end = new Date(`${job.jobDate}T${job.endTime || "23:59:59"}`);
+  return isNaN(end.getTime()) || end >= new Date();
+}
+
+function renderMyJobs(allJobs) {
   const container = document.getElementById("myJobsList");
-  if (!jobs || jobs.length === 0) {
-    container.innerHTML = '<div class="col-12 text-muted">You have not posted any jobs yet. <a href="post-job.html">Post your first job</a>.</div>';
+  // Dashboard cards show active jobs only. Stats above still use the full list.
+  const jobs = (allJobs || []).filter(isActiveJob);
+  if (jobs.length === 0) {
+    container.innerHTML = '<div class="col-12 text-muted">You have no active jobs right now. <a href="post-job.html">Post a job</a>.</div>';
     return;
   }
   container.innerHTML = jobs.map(job => `

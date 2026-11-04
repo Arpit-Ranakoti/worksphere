@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.worksphere.dto.commitment.CommitmentResponse;
 import com.worksphere.entity.Commitment;
@@ -72,6 +73,7 @@ public class CommitmentService {
         notifications.send(c.employer, NotificationType.COMMITMENT, "Commitment for " + c.job.title + " was cancelled");
     }
 
+    @Transactional
     public void complete(Long id, Authentication a) {
         Commitment c = get(id, a);
         if (c.status != CommitmentStatus.CONFIRMED) throw new BadRequestException("Only confirmed commitments can complete");
@@ -84,7 +86,10 @@ public class CommitmentService {
     }
 
     public List<CommitmentResponse> upcoming(Authentication a) {
-        return mine(a).stream().filter(c -> c.jobDate() != null && c.jobDate().compareTo(java.time.LocalDate.now()) >= 0).toList();
+        return mine(a).stream()
+                .filter(c -> c.jobDate() != null && c.jobDate().compareTo(java.time.LocalDate.now()) >= 0)
+                .filter(c -> "PENDING_CONFIRMATION".equals(c.status()) || "CONFIRMED".equals(c.status()))
+                .toList();
     }
 
     private CommitmentResponse to(Commitment c, User me) {
