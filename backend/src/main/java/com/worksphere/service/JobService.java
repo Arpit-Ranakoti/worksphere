@@ -20,6 +20,7 @@ import com.worksphere.repository.ApplicationRepository;
 import com.worksphere.repository.EmployerProfileRepository;
 import com.worksphere.repository.JobRepository;
 import com.worksphere.repository.JobSkillRepository;
+import com.worksphere.util.DateTimeUtil;
 
 @Service
 public class JobService {
@@ -44,7 +45,7 @@ public class JobService {
 
     public List<JobResponse> search(JobSearchFilter f, Authentication a) {
         User worker = a == null ? null : users.current(a);
-        return jobs.findAllByOrderByCreatedAtDesc().stream().filter(j -> !j.deleted && (j.status == JobStatus.OPEN || j.status == JobStatus.FULL)).filter(j -> f.keyword() == null || f.keyword().isBlank() || j.title.toLowerCase().contains(f.keyword().toLowerCase())).filter(j -> f.location() == null || f.location().isBlank() || j.location.toLowerCase().contains(f.location().toLowerCase())).filter(j -> f.category() == null || f.category().isBlank() || j.category.equalsIgnoreCase(f.category())).filter(j -> f.date() == null || f.date().isBlank() || j.jobDate.toString().equals(f.date())).filter(j -> f.minPay() == null || j.pay >= f.minPay()).filter(j -> f.maxPay() == null || j.pay <= f.maxPay()).map(j -> to(j, worker)).sorted((x, y) -> {
+        return jobs.findAllByOrderByCreatedAtDesc().stream().filter(this::isActive).filter(j -> f.keyword() == null || f.keyword().isBlank() || j.title.toLowerCase().contains(f.keyword().toLowerCase())).filter(j -> f.location() == null || f.location().isBlank() || j.location.toLowerCase().contains(f.location().toLowerCase())).filter(j -> f.category() == null || f.category().isBlank() || j.category.equalsIgnoreCase(f.category())).filter(j -> f.date() == null || f.date().isBlank() || j.jobDate.toString().equals(f.date())).filter(j -> f.minPay() == null || j.pay >= f.minPay()).filter(j -> f.maxPay() == null || j.pay <= f.maxPay()).map(j -> to(j, worker)).sorted((x, y) -> {
             if (Boolean.TRUE.equals(f.recommended()) && worker != null) {
                 return Double.compare(Optional.ofNullable(y.matchScore()).orElse(0.0), Optional.ofNullable(x.matchScore()).orElse(0.0));
             
@@ -67,7 +68,19 @@ public class JobService {
 
     public List<JobResponse> mine(Authentication a) {
         User u = users.current(a);
-        return jobs.findByEmployerIdOrderByCreatedAtDesc(u.id).stream().map(x -> to(x, u)).toList();
+        // Deleted jobs are never returned. Completed/expired jobs are still returned so the
+        // employer's stats stay correct; the dashboard hides them when it draws the cards.
+        return jobs.findByEmployerIdOrderByCreatedAtDesc(u.id).stream().filter(x -> !x.deleted).map(x -> to(x, u)).toList();
+    }
+
+    /**
+     * A job is shown to workers when it is not deleted, still OPEN (workers cannot
+     * apply to FULL, COMPLETED or CANCELLED jobs), and its date/end time has not passed.
+     */
+    private boolean isActive(Job j) {
+        return !j.deleted
+                && j.status == JobStatus.OPEN
+                && !DateTimeUtil.isPast(j.jobDate, j.endTime);
     }
 
     public JobResponse create(Authentication a, JobRequest r) {
