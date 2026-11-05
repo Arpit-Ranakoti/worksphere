@@ -3,3 +3,8 @@
    worksphere-git/
    *.patch
    CHANGES-old.md
+backend/target/
+.vscode/
+worksphere-git/
+*.patch
+CHANGES-old.md

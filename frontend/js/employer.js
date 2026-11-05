@@ -76,10 +76,10 @@ async function deleteEmployerJob(jobId) {
   if (!confirm("Delete this job? It will be removed from the public Jobs page. Existing applications will remain available in their related sections.")) return;
   try {
     await WS.del(`/jobs/${jobId}`);
-    WS.showAlert("myJobsAlert", "Job deleted. It is no longer visible to workers; its application history is retained.", "success");
+    WS.showAlert("myJobsAlert", "Job deleted. It is no longer visible to workers and now shows as Deleted in My Jobs.", "success");
     const jobs = await WS.get("/jobs/my");
     document.getElementById("statPosted").innerText = jobs.length;
-    document.getElementById("statOpen").innerText = jobs.filter(j => j.status === "OPEN").length;
+    document.getElementById("statOpen").innerText = jobs.filter(isActiveJob).filter(j => j.status === "OPEN").length;
     document.getElementById("statCompleted").innerText = jobs.filter(j => j.status === "COMPLETED").length;
     renderMyJobs(jobs);
   } catch (e) {

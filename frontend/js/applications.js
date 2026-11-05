@@ -99,8 +99,9 @@ async function loadJobApplicants(jobId) {
 async function loadEmployerAllApplications() {
   const container = document.getElementById("applicationsContainer");
   try {
-    const jobs = await WS.get("/jobs/my");
-    if (!jobs || jobs.length === 0) {
+    // /jobs/my also returns deleted jobs (for the My Jobs history); they take no new applicants
+    const jobs = (await WS.get("/jobs/my") || []).filter(j => j.status !== "DELETED");
+    if (jobs.length === 0) {
       container.innerHTML = '<div class="text-muted">You have not posted any jobs yet.</div>';
       return;
     }

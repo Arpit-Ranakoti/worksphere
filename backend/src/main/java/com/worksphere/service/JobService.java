@@ -68,9 +68,10 @@ public class JobService {
 
     public List<JobResponse> mine(Authentication a) {
         User u = users.current(a);
-        // Deleted jobs are never returned. Completed/expired jobs are still returned so the
-        // employer's stats stay correct; the dashboard hides them when it draws the cards.
-        return jobs.findByEmployerIdOrderByCreatedAtDesc(u.id).stream().filter(x -> !x.deleted).map(x -> to(x, u)).toList();
+        // Full job history for the employer: active, completed, expired and deleted jobs.
+        // Deleted jobs come back with status DELETED. The Dashboard and My Jobs pages
+        // decide in the frontend which of them to show.
+        return jobs.findByEmployerIdOrderByCreatedAtDesc(u.id).stream().map(x -> to(x, u)).toList();
     }
 
     /**
@@ -152,6 +153,6 @@ public class JobService {
             applied = apps.findByJobIdAndWorkerId(j.id, viewer.id).isPresent();
         }
         double rating = employers.findByUserId(j.employer.id).map(p -> p.rating).orElse(0.0);
-        return new JobResponse(j.id, j.employer.id, j.employer.fullName, j.title, j.category, j.description, jobSkills.findByJobId(j.id).stream().map(x -> x.skill.name).toList(), j.location, j.jobDate, j.startTime, j.endTime, j.pay, j.workersRequired, j.workersSelected, j.depositRequired, j.depositAmount, j.status.name(), score, applied, rating, (int) apps.countByJobId(j.id));
+        return new JobResponse(j.id, j.employer.id, j.employer.fullName, j.title, j.category, j.description, jobSkills.findByJobId(j.id).stream().map(x -> x.skill.name).toList(), j.location, j.jobDate, j.startTime, j.endTime, j.pay, j.workersRequired, j.workersSelected, j.depositRequired, j.depositAmount, j.deleted ? "DELETED" : j.status.name(), score, applied, rating, (int) apps.countByJobId(j.id));
     }
 }

@@ -140,7 +140,7 @@ const WS = {
     } else if (user.role === "EMPLOYER") {
       links = `
         <a class="nav-link ${activePage==='dashboard'?'active':''}" href="employer-dashboard.html">Dashboard</a>
-        <a class="nav-link ${activePage==='myjobs'?'active':''}" href="employer-dashboard.html#myjobs">My Jobs</a>
+        <a class="nav-link ${activePage==='myjobs'?'active':''}" href="my-jobs.html">My Jobs</a>
         <a class="nav-link ${activePage==='postjob'?'active':''}" href="post-job.html">Post Job</a>
         <a class="nav-link ${activePage==='applications'?'active':''}" href="applications.html">Applications</a>
         <a class="nav-link ${activePage==='commitments'?'active':''}" href="commitments.html">Commitments</a>
