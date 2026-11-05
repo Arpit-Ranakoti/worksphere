@@ -160,6 +160,8 @@ a { text-decoration: none; }
 .badge-status-COMPLETED { background-color: #10b981; }
 .badge-status-CANCELLED { background-color: var(--ws-danger); }
 .badge-status-EXPIRED { background-color: #9ca3af; }
+.badge-status-ACTIVE { background-color: var(--ws-success); }
+.badge-status-DELETED { background-color: var(--ws-danger); }
 .badge-status-PENDING { background-color: var(--ws-warning); }
 .badge-status-SELECTED { background-color: var(--ws-success); }
 .badge-status-REJECTED { background-color: var(--ws-danger); }
