@@ -41,7 +41,7 @@ public class AdminService {
         long workers = users.findAll().stream().filter(u -> u.role.name().equals("JOB_SEEKER")).count();
         long employers = users.findAll().stream().filter(u -> u.role.name().equals("EMPLOYER")).count();
         long open = disputes.findAll().stream().filter(d -> d.status != DisputeStatus.RESOLVED).count();
-        long openJobs = jobs.findAll().stream().filter(j -> j.status == com.worksphere.entity.JobStatus.OPEN).count();
+        long openJobs = jobs.findAll().stream().filter(j -> !j.deleted && j.status == com.worksphere.entity.JobStatus.OPEN).count();
         long completedJobs = jobs.findAll().stream().filter(j -> j.status == com.worksphere.entity.JobStatus.COMPLETED).count();
         return new AdminDashboardResponse(users.count(), workers, employers, openJobs, completedJobs, open);
     }
@@ -51,7 +51,7 @@ public class AdminService {
     }
 
     public List<Map<String, Object>> jobs() {
-        return jobs.findAllByOrderByCreatedAtDesc().stream().map(j -> row("id", j.id, "title", j.title, "employerName", j.employer.fullName, "location", j.location, "jobDate", j.jobDate, "status", j.status.name())).toList();
+        return jobs.findAllByOrderByCreatedAtDesc().stream().map(j -> row("id", j.id, "title", j.title, "employerName", j.employer.fullName, "location", j.location, "jobDate", j.jobDate, "status", j.deleted ? "DELETED" : j.status.name())).toList();
     }
 
     public List<Map<String, Object>> applications() {

@@ -6,6 +6,7 @@ const JOB_FILTERS = [
   { key: "ALL", label: "All" },
   { key: "ACTIVE", label: "Active" },
   { key: "COMPLETED", label: "Completed" },
+  { key: "EXPIRED", label: "Expired" },
   { key: "DELETED", label: "Deleted" }
 ];
 
@@ -34,20 +35,15 @@ function esc(value) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function hasDatePassed(job) {
-  if (!job.jobDate) return false;
-  const end = new Date(`${job.jobDate}T${job.endTime || "23:59:59"}`);
-  return !isNaN(end.getTime()) && end < new Date();
-}
-
 // What the employer sees for each job.
-// ACTIVE / COMPLETED / DELETED are the three main groups.
-// EXPIRED (date passed, never marked completed) and CANCELLED are shown as their own labels.
+// ACTIVE / COMPLETED / EXPIRED / DELETED each have their own tab. The backend sets
+// EXPIRED once the date has passed; the date check below only covers the short gap
+// before that happens. CANCELLED (rare) is shown under All only.
 function displayStatus(job) {
   if (job.status === "DELETED") return { key: "DELETED", label: "Deleted" };
   if (job.status === "COMPLETED") return { key: "COMPLETED", label: "Completed" };
   if (job.status === "CANCELLED") return { key: "CANCELLED", label: "Cancelled" };
-  if (job.status === "EXPIRED" || hasDatePassed(job)) return { key: "EXPIRED", label: "Expired" };
+  if (job.status === "EXPIRED" || WS.hasJobEnded(job)) return { key: "EXPIRED", label: "Expired" };
   return { key: "ACTIVE", label: "Active" };
 }
 

@@ -117,6 +117,25 @@ const WS = {
     return `<span class="badge badge-status-${status}">${status.replace(/_/g, " ")}</span>`;
   },
 
+  // Escapes text before it is put into innerHTML.
+  esc(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  },
+
+  // True when a job's date and end time have passed. An end time earlier than the start
+  // time means the job runs past midnight, so it ends on the next day. The backend moves
+  // such jobs to EXPIRED on its own; this only covers the gap before that happens.
+  hasJobEnded(job) {
+    if (!job || !job.jobDate) return false;
+    const end = new Date(`${job.jobDate}T${job.endTime || "23:59:59"}`);
+    if (isNaN(end.getTime())) return false;
+    if (job.startTime && job.endTime && job.endTime < job.startTime) {
+      end.setDate(end.getDate() + 1);
+    }
+    return end < new Date();
+  },
+
   // ---- Navbar rendering ----
   renderNavbar(containerId, activePage = "") {
     const user = this.getUser();

@@ -26,6 +26,7 @@ import com.worksphere.repository.CommitmentRepository;
 import com.worksphere.repository.JobRepository;
 import com.worksphere.repository.WorkerProfileRepository;
 import com.worksphere.repository.WorkerSkillRepository;
+import com.worksphere.util.DateTimeUtil;
 
 @Service
 public class ApplicationService {
@@ -56,9 +57,12 @@ public class ApplicationService {
             throw new UnauthorizedActionException("Only job seekers can apply");
         
         }Job j = jobs.findById(r.jobId()).orElseThrow(() -> new ResourceNotFoundException("Job not found"));
-        if (j.status != JobStatus.OPEN) {
+        if (j.deleted || j.status != JobStatus.OPEN) {
             throw new BadRequestException("Applications are closed");
-        
+
+        }if (DateTimeUtil.isPast(j.jobDate, j.startTime, j.endTime)) {
+            throw new BadRequestException("This job has already ended");
+
         }if (apps.findByJobIdAndWorkerId(j.id, w.id).isPresent()) {
             throw new DuplicateApplicationException("Already applied");
         
@@ -107,9 +111,12 @@ public class ApplicationService {
         if (!x.job.employer.id.equals(e.id)) {
             throw new UnauthorizedActionException("Not your job");
         
+        }if (x.job.deleted || x.job.status == JobStatus.EXPIRED || x.job.status == JobStatus.COMPLETED) {
+            throw new BadRequestException("This job is closed, so workers can no longer be selected");
+
         }if (x.status != ApplicationStatus.PENDING) {
             throw new BadRequestException("Application is not pending");
-        
+
         }x.status = ApplicationStatus.SELECTED;
         apps.save(x);
         x.job.workersSelected++;
