@@ -23,6 +23,9 @@ import com.worksphere.repository.RatingRepository;
 @Service
 public class CommitmentService {
 
+    /** Workers who have confirmed and still have to be marked completed. Unconfirmed ones do not hold a job open. */
+    private static final List<CommitmentStatus> STILL_WORKING = List.of(CommitmentStatus.CONFIRMED);
+
     private final CommitmentRepository repo;
     private final UserService users;
     private final NotificationService notifications;
@@ -80,8 +83,13 @@ public class CommitmentService {
         c.status = CommitmentStatus.COMPLETED;
         c.completedAt = java.time.LocalDateTime.now();
         if (c.depositStatus == DepositStatus.HELD) c.depositStatus = DepositStatus.REFUNDED;
-        c.job.status = JobStatus.COMPLETED;
         repo.save(c);
+        // The job as a whole is only completed once every worker on it is done. With several
+        // workers, finishing the first commitment must not close the job for the others.
+        boolean othersStillWorking = repo.existsByJobIdAndStatusIn(c.job.id, STILL_WORKING);
+        if (!othersStillWorking) {
+            c.job.status = JobStatus.COMPLETED;
+        }
         notifications.send(c.worker, NotificationType.COMMITMENT, "Job completed: " + c.job.title);
     }
 

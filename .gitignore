@@ -8,3 +8,5 @@ backend/target/
 worksphere-git/
 *.patch
 CHANGES-old.md
+
+job-status-sync.patch
